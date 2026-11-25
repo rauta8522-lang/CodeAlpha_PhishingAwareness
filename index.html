@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phishing Awareness Training — CodeAlpha</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #121a30;
+      --card-2: #17213d;
+      --border: #24335c;
+      --text: #e8eeff;
+      --muted: #96a6cb;
+      --accent: #6366f1;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #facc15;
+      --bad: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Segoe UI", system-ui, sans-serif; }
+    body { background: var(--bg); color: var(--text); line-height: 1.55; padding: 24px; }
+    .container { max-width: 1120px; margin: 0 auto; }
+
+    header {
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+      gap: 16px; padding-bottom: 18px; margin-bottom: 22px; border-bottom: 1px solid var(--border);
+    }
+    .brand h1 { font-size: 1.6rem; letter-spacing: 0.2px; }
+    .brand p { color: var(--muted); font-size: 0.92rem; margin-top: 4px; }
+
+    nav { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tab-btn {
+      background: var(--card); color: var(--muted); border: 1px solid var(--border);
+      padding: 9px 15px; border-radius: 9px; cursor: pointer; font-size: 0.88rem; font-weight: 600;
+      transition: 0.15s;
+    }
+    .tab-btn:hover { color: var(--text); border-color: var(--accent); }
+    .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    section { display: none; }
+    section.active { display: block; }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 16px; margin-bottom: 18px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 18px; }
+
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px;
+    }
+    .card h2 { font-size: 1.15rem; margin-bottom: 8px; }
+    .card h3 { font-size: 1rem; margin-bottom: 8px; color: var(--accent-2); }
+    .card p { color: var(--muted); font-size: 0.92rem; }
+
+    ul.clean-list { list-style: none; margin-top: 10px; display: grid; gap: 8px; }
+    ul.clean-list li {
+      background: var(--card-2); border: 1px solid rgba(36, 51, 92, 0.7);
+      border-radius: 9px; padding: 10px 12px; font-size: 0.89rem; color: var(--text);
+    }
+    ul.clean-list li span.tag {
+      display: inline-block; font-size: 0.74rem; font-weight: 700; text-transform: uppercase;
+      padding: 2px 7px; border-radius: 5px; margin-right: 7px;
+      background: rgba(99, 102, 241, 0.2); color: #a5b4fc;
+    }
+
+    /* Example Email & URL Inspector */
+    .sample-box {
+      background: #0d1427; border: 1px solid var(--border); border-radius: 12px;
+      padding: 15px; margin-top: 12px; font-size: 0.88rem;
+    }
+    .meta-row { color: var(--muted); font-size: 0.83rem; margin-bottom: 6px; }
+    .fake-domain { color: #fca5a5; font-family: Consolas, monospace; background: rgba(239, 68, 68, 0.14); padding: 1px 6px; border-radius: 4px; }
+    .real-domain { color: #86efac; font-family: Consolas, monospace; background: rgba(34, 197, 94, 0.14); padding: 1px 6px; border-radius: 4px; }
+
+    /* Interactive Quiz */
+    .quiz-top {
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+      gap: 10px; margin-bottom: 16px;
+    }
+    .score-pill {
+      background: var(--card); border: 1px solid var(--border); padding: 8px 14px;
+      border-radius: 999px; font-size: 0.88rem; font-weight: 600;
+    }
+    .q-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 20px; margin-bottom: 16px;
+    }
+    .q-title { font-size: 1rem; font-weight: 600; margin-bottom: 12px; }
+    .options { display: grid; gap: 9px; }
+    .opt-btn {
+      text-align: left; width: 100%; background: var(--card-2); color: var(--text);
+      border: 1px solid var(--border); padding: 11px 14px; border-radius: 9px;
+      cursor: pointer; font-size: 0.89rem; transition: 0.15s;
+    }
+    .opt-btn:hover:not(:disabled) { border-color: var(--accent-2); }
+    .opt-btn.correct { background: rgba(34, 197, 94, 0.18); border-color: var(--ok); color: #bbf7d0; }
+    .opt-btn.wrong { background: rgba(239, 68, 68, 0.18); border-color: var(--bad); color: #fecaca; }
+    .opt-btn:disabled { cursor: default; opacity: 0.92; }
+
+    .feedback {
+      margin-top: 12px; padding: 11px 13px; border-radius: 9px; font-size: 0.87rem;
+      display: none; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #bae6fd;
+    }
+    .feedback.show { display: block; }
+
+    .reset-btn {
+      background: var(--accent); color: #fff; border: none; padding: 9px 16px;
+      border-radius: 9px; cursor: pointer; font-weight: 600; font-size: 0.88rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <h1>Phishing Awareness Training Module</h1>
+        <p>Spot deceptive emails, fake websites, social engineering tactics, and protect your accounts</p>
+      </div>
+      <nav>
+        <button class="tab-btn active" onclick="showTab('overview', this)">Overview &amp; Red Flags</button>
+        <button class="tab-btn" onclick="showTab('tactics', this)">Social Engineering</button>
+        <button class="tab-btn" onclick="showTab('defense', this)">Best Practices</button>
+        <button class="tab-btn" onclick="showTab('quiz', this)">Interactive Quiz</button>
+      </nav>
+    </header>
+
+    <!-- TAB 1: OVERVIEW & RED FLAGS -->
+    <section id="overview" class="active">
+      <div class="grid-2">
+        <div class="card">
+          <h2>Recognizing Phishing Emails</h2>
+          <p>Attackers send forged messages pretending to be banks, HR, college portals, or tech support to steal credentials or trigger malware.</p>
+          <ul class="clean-list">
+            <li><span class="tag">Sender</span> Display name looks legitimate, but actual address uses a lookalike or unrelated domain.</li>
+            <li><span class="tag">Urgency</span> Artificial deadlines like "Account suspended in 2 hours" to rush mistakes.</li>
+            <li><span class="tag">Greeting</span> Generic greetings ("Dear Customer") instead of your actual name or account context.</li>
+            <li><span class="tag">Attachments</span> Unexpected <code>.html</code>, <code>.iso</code>, <code>.zip</code>, or macro-enabled files.</li>
+          </ul>
+          <div class="sample-box">
+            <div class="meta-row"><strong>From:</strong> Security Support &lt;support@paypa1-security-alerts.com&gt;</div>
+            <div class="meta-row"><strong>Subject:</strong> URGENT: Unusual sign-in detected — Verify now</div>
+            <p style="margin-top:6px; color:#cbd5e1;">Click below within 24 hours to prevent permanent account lock: <span class="fake-domain">http://paypa1-verify-login.com/auth</span></p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Spotting Fake Websites</h2>
+          <p>Phishing sites clone login pages to harvest passwords and session tokens in real time.</p>
+          <ul class="clean-list">
+            <li><span class="tag">Typosquatting</span> Subtle misspellings like <span class="fake-domain">micr0soft-login.com</span> vs <span class="real-domain">login.microsoft.com</span>.</li>
+            <li><span class="tag">Subdomain Trick</span> Attackers put brand names in subdomains: <span class="fake-domain">google.com.security-check.xyz</span> (actual domain is <code>security-check.xyz</code>).</li>
+            <li><span class="tag">HTTPS Myth</span> A padlock or <code>https://</code> only means encrypted traffic—attackers can get free TLS certificates too.</li>
+            <li><span class="tag">Broken UX</span> Missing links, poor alignment, or asking for OTP/PIN on an unexpected page.</li>
+          </ul>
+          <div class="sample-box">
+            <div class="meta-row"><strong>URL Check Habit:</strong></div>
+            <p style="color:#cbd5e1;">Always inspect the domain right before the first single slash <code>/</code>. When in doubt, open the official site via bookmark or search—not email links.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: SOCIAL ENGINEERING TACTICS -->
+    <section id="tactics">
+      <div class="grid-3">
+        <div class="card">
+          <h3>1. Urgency &amp; Fear</h3>
+          <p>Creates panic so targets act fast without verifying—such as fake legal notices, blocked cards, or immediate password expiry.</p>
+        </div>
+        <div class="card">
+          <h3>2. Authority Impersonation</h3>
+          <p>Pretends to be an IT admin, manager, law enforcement, or executive asking for quick compliance or confidential info.</p>
+        </div>
+        <div class="card">
+          <h3>3. Greed &amp; Bait</h3>
+          <p>Uses fake rewards, refunds, job offers, or "free" software/upgrades to lure users into clicking malicious links.</p>
+        </div>
+        <div class="card">
+          <h3>4. Pretexting</h3>
+          <p>Builds a fabricated scenario (like a delivery issue or IT ticket follow-up) to make a request feel routine and normal.</p>
+        </div>
+        <div class="card">
+          <h3>5. Quid Pro Quo</h3>
+          <p>Offers a service or favor in exchange for information—such as "IT helpdesk" asking for credentials to fix an issue.</p>
+        </div>
+        <div class="card">
+          <h3>6. Spear &amp; Clone Phishing</h3>
+          <p>Tailors messages using personal/organizational details or resends a legitimate-looking email with a swapped malicious link.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: BEST PRACTICES -->
+    <section id="defense">
+      <div class="grid-2">
+        <div class="card">
+          <h2>Everyday Prevention Checklist</h2>
+          <ul class="clean-list">
+            <li><span class="tag">MFA</span> Enable authenticator-app or hardware-key Multi-Factor Authentication on critical accounts.</li>
+            <li><span class="tag">Passwords</span> Use unique, strong passphrases and a password manager—never reuse passwords.</li>
+            <li><span class="tag">Hover &amp; Verify</span> Hover over links before clicking to preview the real destination URL.</li>
+            <li><span class="tag">Out-of-Band</span> Confirm unusual payment, credential, or urgent requests via a trusted phone call or known channel.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>If You Clicked or Replied</h2>
+          <ul class="clean-list">
+            <li><span class="tag">Step 1</span> Change your password immediately from a trusted device and known official website.</li>
+            <li><span class="tag">Step 2</span> Sign out of active sessions / revoke suspicious app tokens and review recent login activity.</li>
+            <li><span class="tag">Step 3</span> Run a malware scan if a file was downloaded or executed.</li>
+            <li><span class="tag">Step 4</span> Report the phishing message to your IT/security team or email provider so others stay protected.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: INTERACTIVE QUIZ -->
+    <section id="quiz">
+      <div class="quiz-top">
+        <div>
+          <h2>Phishing Readiness Quiz</h2>
+          <p style="color:var(--muted); font-size:0.9rem;">Test your ability to spot phishing attempts in realistic scenarios.</p>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <div class="score-pill">Score: <span id="scoreVal">0</span> / <span id="totalVal">0</span></div>
+          <button class="reset-btn" onclick="resetQuiz()">Reset Quiz</button>
+        </div>
+      </div>
+      <div id="quizContainer"></div>
+    </section>
+  </div>
+
+  <script>
+    const quizData = [
+      {
+        q: "1. You receive an email from 'HR Payroll <hr-update@company-benefits-portal.com>' saying your salary is on hold unless you log in within 30 minutes. What is the biggest red flag?",
+        options: [
+          "The email mentions salary or payroll",
+          "High urgency combined with an external lookalike domain instead of the official company domain",
+          "The email was sent during business hours"
+        ],
+        answer: 1,
+        why: "Attackers pair time pressure ('30 minutes') with lookalike external domains to trick users into entering credentials without checking."
+      },
+      {
+        q: "2. A link in a message looks like 'https://bank-alerts.com.secure-session-check.net/login'. Which part is the actual domain name?",
+        options: [
+          "bank-alerts.com",
+          "secure-session-check.net",
+          "https://"
+        ],
+        answer: 1,
+        why: "In 'bank-alerts.com.secure-session-check.net', 'bank-alerts.com' is only a subdomain; the real registered domain is 'secure-session-check.net'."
+      },
+      {
+        q: "3. A login page has 'https://' and a lock icon in the address bar. Does that guarantee the website is legitimate?",
+        options: [
+          "Yes, HTTPS means the website owner is verified as trustworthy",
+          "No, attackers can also use HTTPS to encrypt data they steal on phishing pages",
+          "Yes, phishing sites never use HTTPS"
+        ],
+        answer: 1,
+        why: "HTTPS encrypts the connection in transit—it does not prove a site is safe or authentic."
+      },
+      {
+        q: "4. Someone calls claiming to be from IT Support and asks for your one-time verification code to fix a sync issue. What should you do?",
+        options: [
+          "Share the code quickly so your account isn't locked",
+          "Refuse, hang up, and verify directly through official IT contact channels",
+          "Send your password instead of the code"
+        ],
+        answer: 1,
+        why: "Legitimate support teams do not ask for your login credentials or one-time verification codes. Always verify via an independent, trusted channel."
+      },
+      {
+        q: "5. You accidentally entered your password on a suspicious form. What is the best immediate action?",
+        options: [
+          "Change that password right away (and anywhere else it was reused) and check active sessions/MFA",
+          "Wait a week to see if anything unusual happens",
+          "Reply to the sender asking them to delete your details"
+        ],
+        answer: 0,
+        why: "Changing passwords immediately, ending active sessions, and enabling/reviewing MFA limits damage before attackers can misuse stolen credentials."
+      }
+    ];
+
+    let score = 0;
+    let answeredCount = 0;
+
+    function showTab(tabId, btn) {
+      document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.getElementById(tabId).classList.add("active");
+      if (btn) btn.classList.add("active");
+    }
+
+    function renderQuiz() {
+      const container = document.getElementById("quizContainer");
+      document.getElementById("scoreVal").textContent = score;
+      document.getElementById("totalVal").textContent = quizData.length;
+
+      container.innerHTML = quizData.map((item, qIdx) => `
+        <div class="q-card">
+          <div class="q-title">${item.q}</div>
+          <div class="options">
+            ${item.options.map((opt, oIdx) => `
+              <button class="opt-btn" id="q${qIdx}_o${oIdx}" onclick="selectOption(${qIdx}, ${oIdx})">${opt}</button>
+            `).join("")}
+          </div>
+          <div class="feedback" id="fb_${qIdx}"></div>
+        </div>
+      `).join("");
+    }
+
+    function selectOption(qIdx, oIdx) {
+      const item = quizData[qIdx];
+      const buttons = item.options.map((_, i) => document.getElementById(`q${qIdx}_o${i}`));
+      if (buttons[0].disabled) return;
+
+      buttons.forEach(b => b.disabled = true);
+      answeredCount++;
+
+      const fb = document.getElementById(`fb_${qIdx}`);
+      if (oIdx === item.answer) {
+        buttons[oIdx].classList.add("correct");
+        score++;
+        fb.innerHTML = `<strong>Correct:</strong> ${item.why}`;
+      } else {
+        buttons[oIdx].classList.add("wrong");
+        buttons[item.answer].classList.add("correct");
+        fb.innerHTML = `<strong>Not quite:</strong> ${item.why}`;
+      }
+      fb.classList.add("show");
+      document.getElementById("scoreVal").textContent = score;
+    }
+
+    function resetQuiz() {
+      score = 0;
+      answeredCount = 0;
+      renderQuiz();
+    }
+
+    renderQuiz();
+  </script>
+</body>
+</html>
